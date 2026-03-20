@@ -2,1052 +2,951 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Raíces – Mobile Prototype</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0D1A12">
+<title>Raíces</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-* { margin:0; padding:0; box-sizing:border-box; }
+  :root {
+    --gold: #C8973A;
+    --gold-light: rgba(200,151,58,0.14);
+    --gold-border: rgba(200,151,58,0.32);
+    --bg: #0D1A12;
+    --bg2: rgba(242,237,228,0.05);
+    --bg3: rgba(242,237,228,0.08);
+    --text: #F2EDE4;
+    --text2: rgba(242,237,228,0.6);
+    --text3: rgba(242,237,228,0.35);
+    --border: rgba(242,237,228,0.09);
+    --border2: rgba(242,237,228,0.16);
+    --green: #3DAA6B;
+    --rose: #C0596E;
+    --blue: #4A90B8;
+    --purple: #8A5C9E;
+    --teal: #5C9E7A;
+    --safe-top: env(safe-area-inset-top, 44px);
+    --safe-bot: env(safe-area-inset-bottom, 20px);
+  }
 
-body {
-  font-family: 'DM Sans', sans-serif;
-  background: #1a1a2e;
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-  background-image: radial-gradient(ellipse 60% 50% at 30% 20%, rgba(200,151,58,0.08) 0%, transparent 60%),
-                    radial-gradient(ellipse 50% 60% at 80% 80%, rgba(29,100,60,0.12) 0%, transparent 60%);
-}
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-/* PHONE SHELL */
-.phone-wrap {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.5rem;
-}
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    background: var(--bg);
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+  }
 
-.phone-label {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.75rem;
-  color: rgba(255,255,255,0.3);
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-}
+  /* APP SHELL */
+  #app {
+    width: 100%; height: 100%;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
 
-.phone {
-  width: 390px;
-  height: 844px;
-  background: #0D1A12;
-  border-radius: 54px;
-  box-shadow:
-    0 0 0 1px rgba(255,255,255,0.08),
-    0 0 0 10px #111,
-    0 0 0 11px rgba(255,255,255,0.06),
-    0 40px 80px rgba(0,0,0,0.6);
-  overflow: hidden;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-}
+  /* SCREENS */
+  .screen {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    background: var(--bg);
+    opacity: 0; pointer-events: none;
+    transform: translateX(30px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    will-change: transform, opacity;
+  }
+  .screen.active {
+    opacity: 1; pointer-events: all;
+    transform: translateX(0);
+  }
+  .screen.slide-back {
+    transform: translateX(-30px);
+  }
 
-/* NOTCH */
-.notch {
-  position: absolute;
-  top: 0; left: 50%;
-  transform: translateX(-50%);
-  width: 126px; height: 34px;
-  background: #111;
-  border-radius: 0 0 20px 20px;
-  z-index: 200;
-  display: flex; align-items: center; justify-content: center; gap: 6px;
-}
-.notch-cam {
-  width: 10px; height: 10px; border-radius: 50%;
-  background: #1a1a1a; border: 1.5px solid #222;
-}
-.notch-speaker {
-  width: 48px; height: 5px; border-radius: 3px; background: #1a1a1a;
-}
+  /* SCROLLABLE CONTENT */
+  .scroll-content {
+    flex: 1; overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+  .scroll-content::-webkit-scrollbar { display: none; }
 
-/* STATUS BAR */
-.status-bar {
-  height: 50px; flex-shrink: 0;
-  display: flex; align-items: flex-end; justify-content: space-between;
-  padding: 0 28px 6px;
-  z-index: 100;
-}
-.status-time { font-size: 15px; font-weight: 500; color: #F2EDE4; }
-.status-icons { display: flex; gap: 5px; align-items: center; }
-.status-icons svg { fill: #F2EDE4; }
+  /* STATUS BAR SPACER */
+  .status-space {
+    height: var(--safe-top);
+    min-height: 44px;
+    flex-shrink: 0;
+  }
 
-/* SCREEN AREA */
-.screen-area {
-  flex: 1;
-  overflow: hidden;
-  position: relative;
-}
+  /* TOP NAV */
+  .top-nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 20px 12px;
+    flex-shrink: 0;
+    background: rgba(13,26,18,0.96);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 0.5px solid var(--border);
+  }
 
-/* SCREENS */
-.screen {
-  position: absolute; inset: 0;
-  overflow-y: auto;
-  display: none;
-  flex-direction: column;
-  background: #0D1A12;
-  -webkit-overflow-scrolling: touch;
-}
-.screen.active { display: flex; }
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem; color: var(--text);
+  }
+  .logo span { color: var(--gold); font-style: italic; }
 
-/* Scroll styling */
-.screen::-webkit-scrollbar { display: none; }
+  .icon-btn {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: var(--bg2); border: 0.5px solid var(--border2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; cursor: pointer;
+    transition: background 0.15s;
+    -webkit-user-select: none; user-select: none;
+  }
+  .icon-btn:active { background: var(--bg3); }
 
-/* HOME BUTTON BAR */
-.home-bar {
-  height: 34px; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  background: #0D1A12;
-}
-.home-indicator {
-  width: 134px; height: 5px;
-  background: rgba(242,237,228,0.3);
-  border-radius: 3px;
-}
+  .back-btn {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 0.85rem; color: var(--text2);
+    cursor: pointer; padding: 4px 0;
+    background: none; border: none;
+    -webkit-user-select: none; user-select: none;
+  }
+  .back-btn:active { opacity: 0.7; }
 
-/* ===== DESIGN TOKENS ===== */
-:root {
-  --gold: #C8973A;
-  --gold-light: rgba(200,151,58,0.14);
-  --gold-border: rgba(200,151,58,0.32);
-  --bg: #0D1A12;
-  --bg2: rgba(242,237,228,0.04);
-  --bg3: rgba(242,237,228,0.07);
-  --text: #F2EDE4;
-  --text2: rgba(242,237,228,0.6);
-  --text3: rgba(242,237,228,0.35);
-  --border: rgba(242,237,228,0.08);
-  --border2: rgba(242,237,228,0.14);
-  --green: #3DAA6B;
-  --rose: #C0596E;
-  --blue: #4A90B8;
-}
+  /* BOTTOM TAB BAR */
+  .tab-bar {
+    display: flex; flex-shrink: 0;
+    background: rgba(10,22,14,0.98);
+    border-top: 0.5px solid var(--border);
+    padding-bottom: var(--safe-bot);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
 
-/* ===== NAV BAR ===== */
-.top-nav {
-  padding: 12px 20px 10px;
-  display: flex; align-items: center; justify-content: space-between;
-  flex-shrink: 0;
-  background: rgba(13,26,18,0.92);
-  backdrop-filter: blur(10px);
-  position: sticky; top: 0; z-index: 50;
-}
-.logo {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.3rem; color: var(--text);
-}
-.logo span { color: var(--gold); font-style: italic; }
+  .tab {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 8px 0 4px; cursor: pointer;
+    -webkit-user-select: none; user-select: none;
+    transition: opacity 0.1s;
+  }
+  .tab:active { opacity: 0.6; }
 
-.nav-icon-btn {
-  width: 36px; height: 36px; border-radius: 50%;
-  background: var(--bg2); border: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; font-size: 1rem;
-}
+  .tab-icon { font-size: 1.25rem; margin-bottom: 3px; }
+  .tab-label { font-size: 0.6rem; color: var(--text3); letter-spacing: 0.2px; }
+  .tab.active .tab-label { color: var(--gold); }
 
-/* ===== BUTTONS ===== */
-.btn {
-  border: none; border-radius: 100px;
-  font-family: 'DM Sans'; font-weight: 500; cursor: pointer;
-  transition: opacity 0.2s; display: inline-flex; align-items: center; justify-content: center;
-}
-.btn-primary { background: var(--gold); color: #0D1A12; }
-.btn-primary:hover { opacity: 0.85; }
-.btn-ghost { background: transparent; color: var(--text2); border: 1px solid var(--border2); }
-.btn-sm { padding: 0.4rem 1rem; font-size: 0.78rem; }
-.btn-md { padding: 0.6rem 1.4rem; font-size: 0.88rem; }
-.btn-full { width: 100%; padding: 0.85rem; font-size: 0.95rem; border-radius: 14px; }
+  /* BUTTONS */
+  .btn {
+    border: none; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-weight: 500;
+    transition: opacity 0.15s, transform 0.1s;
+    -webkit-user-select: none; user-select: none;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .btn:active { transform: scale(0.97); opacity: 0.85; }
+  .btn-primary { background: var(--gold); color: #0D1A12; border-radius: 100px; }
+  .btn-ghost { background: transparent; color: var(--text2); border: 0.5px solid var(--border2); border-radius: 100px; }
+  .btn-sm { padding: 8px 18px; font-size: 0.85rem; }
+  .btn-md { padding: 12px 24px; font-size: 0.95rem; }
+  .btn-full { width: 100%; padding: 15px; font-size: 1rem; border-radius: 14px; }
 
-/* ===== TAGS ===== */
-.tag {
-  font-size: 0.68rem; padding: 3px 10px; border-radius: 100px;
-  background: var(--gold-light); color: var(--gold); border: 1px solid var(--gold-border);
-  display: inline-block;
-}
+  /* TAGS */
+  .tag {
+    font-size: 0.68rem; padding: 3px 10px; border-radius: 100px;
+    background: var(--gold-light); color: var(--gold);
+    border: 0.5px solid var(--gold-border);
+    display: inline-block; white-space: nowrap;
+  }
 
-/* ===== BOTTOM TAB BAR ===== */
-.tab-bar {
-  display: flex;
-  border-top: 1px solid var(--border);
-  background: rgba(13,26,18,0.98);
-  flex-shrink: 0;
-  padding: 8px 0 4px;
-}
-.tab-item {
-  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
-  cursor: pointer; padding: 4px 0;
-}
-.tab-icon { font-size: 1.2rem; }
-.tab-label { font-size: 0.6rem; color: var(--text3); }
-.tab-item.active .tab-label { color: var(--gold); }
-.tab-item.active .tab-icon { filter: none; }
+  /* AVATARS */
+  .av {
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif; font-weight: 700; flex-shrink: 0;
+  }
+  .av-sm { width: 44px; height: 44px; font-size: 1rem; }
+  .av-md { width: 52px; height: 52px; font-size: 1.2rem; }
+  .av-lg { width: 68px; height: 68px; font-size: 1.5rem; }
+  .av-gold { background: var(--gold); color: #0D1A12; }
+  .av-green { background: var(--green); color: #0D1A12; }
+  .av-rose { background: var(--rose); color: #fff; }
+  .av-blue { background: var(--blue); color: #fff; }
+  .av-purple { background: var(--purple); color: #fff; }
+  .av-teal { background: var(--teal); color: #fff; }
 
-/* ===== HERO SCREEN ===== */
-.hero-scroll { flex: 1; overflow-y: auto; }
-.hero-scroll::-webkit-scrollbar { display: none; }
+  /* CARDS */
+  .card {
+    background: var(--bg2); border: 0.5px solid var(--border);
+    border-radius: 16px; overflow: hidden;
+  }
+  .card:active { background: var(--bg3); }
 
-.hero-banner {
-  padding: 24px 20px 20px;
-  background: linear-gradient(180deg, rgba(200,151,58,0.06) 0%, transparent 100%);
-}
+  /* DIVIDER */
+  .divider { height: 0.5px; background: var(--border); }
 
-.badge {
-  display: inline-flex; align-items: center; gap: 5px;
-  background: var(--gold-light); border: 1px solid var(--gold-border);
-  border-radius: 100px; padding: 3px 10px;
-  font-size: 0.65rem; color: var(--gold);
-  margin-bottom: 12px; letter-spacing: 0.6px; text-transform: uppercase;
-}
+  /* ==================== HOME SCREEN ==================== */
+  .hero-band {
+    padding: 24px 20px 20px;
+    background: linear-gradient(180deg, rgba(200,151,58,0.07) 0%, transparent 100%);
+  }
 
-.hero-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 2rem; line-height: 1.1; letter-spacing: -0.8px;
-  color: var(--text); margin-bottom: 10px;
-}
-.hero-title em { color: var(--gold); font-style: italic; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: var(--gold-light); border: 0.5px solid var(--gold-border);
+    border-radius: 100px; padding: 4px 12px;
+    font-size: 0.65rem; color: var(--gold);
+    margin-bottom: 14px; letter-spacing: 0.8px; text-transform: uppercase;
+  }
 
-.hero-sub {
-  font-size: 0.82rem; color: var(--text2); line-height: 1.65;
-  margin-bottom: 18px;
-}
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem; line-height: 1.1; letter-spacing: -1px;
+    color: var(--text); margin-bottom: 10px;
+  }
+  .hero-title em { color: var(--gold); font-style: italic; }
 
-.hero-btns { display: flex; gap: 8px; margin-bottom: 24px; }
+  .hero-sub {
+    font-size: 0.85rem; color: var(--text2); line-height: 1.65; margin-bottom: 20px;
+  }
 
-.stats-row {
-  display: flex; gap: 0; margin: 0 -20px;
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-}
-.stat {
-  flex: 1; padding: 14px 0; text-align: center;
-  border-right: 1px solid var(--border);
-}
-.stat:last-child { border-right: none; }
-.stat-num {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.3rem; color: var(--text);
-}
-.stat-label { font-size: 0.6rem; color: var(--text3); margin-top: 1px; }
+  .hero-btns { display: flex; gap: 10px; margin-bottom: 24px; }
 
-/* SECTION */
-.section { padding: 20px 20px; }
-.eyebrow {
-  font-size: 0.65rem; text-transform: uppercase;
-  letter-spacing: 1.8px; color: var(--gold); margin-bottom: 5px;
-}
-.section-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.3rem; color: var(--text); margin-bottom: 6px; line-height: 1.15;
-}
-.section-sub { font-size: 0.78rem; color: var(--text2); line-height: 1.6; margin-bottom: 16px; }
+  .stats-strip {
+    display: flex; margin: 0 -20px;
+    border-top: 0.5px solid var(--border);
+    border-bottom: 0.5px solid var(--border);
+  }
+  .stat-cell {
+    flex: 1; padding: 14px 0; text-align: center;
+    border-right: 0.5px solid var(--border);
+  }
+  .stat-cell:last-child { border-right: none; }
+  .stat-n { font-family: 'Playfair Display', serif; font-size: 1.3rem; }
+  .stat-l { font-size: 0.6rem; color: var(--text3); margin-top: 1px; }
 
-.divider { height: 1px; background: var(--border); margin: 0 20px; }
+  .section { padding: 20px 20px; }
+  .eyebrow { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1.8px; color: var(--gold); margin-bottom: 4px; }
+  .sec-title { font-family: 'Playfair Display', serif; font-size: 1.25rem; color: var(--text); margin-bottom: 14px; line-height: 1.15; }
 
-/* COACH CARD (horizontal scroll) */
-.coaches-scroll {
-  display: flex; gap: 12px;
-  overflow-x: auto; padding: 4px 20px 8px;
-  -webkit-overflow-scrolling: touch;
-}
-.coaches-scroll::-webkit-scrollbar { display: none; }
+  /* HORIZONTAL COACH SCROLL */
+  .h-scroll {
+    display: flex; gap: 12px;
+    overflow-x: auto; padding: 2px 20px 10px;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+  }
+  .h-scroll::-webkit-scrollbar { display: none; }
 
-.coach-mini {
-  background: var(--bg2); border: 1px solid var(--border);
-  border-radius: 16px; padding: 16px;
-  min-width: 180px; cursor: pointer; flex-shrink: 0;
-  transition: border-color 0.2s;
-}
-.coach-mini:hover { border-color: var(--gold-border); }
+  .coach-chip {
+    min-width: 160px; padding: 14px;
+    scroll-snap-align: start; cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .coach-chip:active { opacity: 0.8; }
+  .chip-name { font-size: 0.88rem; font-weight: 500; margin: 8px 0 2px; }
+  .chip-country { font-size: 0.68rem; color: var(--text3); margin-bottom: 8px; }
+  .chip-bottom {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    margin-top: 10px; padding-top: 10px; border-top: 0.5px solid var(--border);
+  }
+  .chip-price { font-family: 'Playfair Display', serif; font-size: 1rem; }
+  .chip-per { font-size: 0.62rem; color: var(--text3); }
+  .avail { display: flex; align-items: center; gap: 3px; font-size: 0.62rem; color: var(--green); }
+  .avail-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); }
 
-.av {
-  width: 44px; height: 44px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'Playfair Display', serif; font-size: 1rem;
-  font-weight: 700; margin-bottom: 10px;
-}
-.av-gold { background: var(--gold); color: #0D1A12; }
-.av-green { background: var(--green); color: #0D1A12; }
-.av-rose { background: var(--rose); color: #fff; }
-.av-blue { background: var(--blue); color: #fff; }
-.av-purple { background: #8A5C9E; color: #fff; }
-.av-teal { background: #5C9E7A; color: #fff; }
+  /* STEPS */
+  .steps-list { display: flex; flex-direction: column; gap: 10px; }
+  .step-row {
+    display: flex; gap: 14px; align-items: flex-start;
+    padding: 14px; background: var(--bg2); border: 0.5px solid var(--border); border-radius: 14px;
+  }
+  .step-circle {
+    width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+    background: var(--gold-light); border: 0.5px solid var(--gold-border);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif; font-size: 0.85rem; color: var(--gold);
+  }
+  .step-t { font-size: 0.88rem; font-weight: 500; margin-bottom: 2px; }
+  .step-d { font-size: 0.75rem; color: var(--text2); line-height: 1.5; }
 
-.cm-name { font-size: 0.88rem; font-weight: 500; color: var(--text); margin-bottom: 2px; }
-.cm-country { font-size: 0.7rem; color: var(--text3); margin-bottom: 6px; }
-.cm-bottom {
-  display: flex; justify-content: space-between; align-items: center;
-  margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border);
-}
-.cm-price { font-family: 'Playfair Display', serif; font-size: 0.95rem; color: var(--text); }
-.cm-per { font-size: 0.65rem; color: var(--text3); }
-.avail { display: flex; align-items: center; gap: 3px; font-size: 0.65rem; color: var(--green); }
-.avail-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); }
+  /* CTA BAND */
+  .cta-band {
+    margin: 4px 20px 24px;
+    background: var(--gold-light); border: 0.5px solid var(--gold-border);
+    border-radius: 18px; padding: 22px 18px; text-align: center;
+  }
+  .cta-band h3 { font-family: 'Playfair Display', serif; font-size: 1.2rem; margin-bottom: 6px; line-height: 1.2; }
+  .cta-band p { font-size: 0.78rem; color: var(--text2); margin-bottom: 14px; }
 
-/* STEPS */
-.steps { display: flex; flex-direction: column; gap: 12px; }
-.step-row {
-  display: flex; gap: 14px; align-items: flex-start;
-  background: var(--bg2); border: 1px solid var(--border);
-  border-radius: 14px; padding: 14px;
-}
-.step-num-circle {
-  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
-  background: var(--gold-light); border: 1px solid var(--gold-border);
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'Playfair Display', serif; font-size: 0.85rem; color: var(--gold);
-}
-.step-content-title { font-size: 0.88rem; font-weight: 500; color: var(--text); margin-bottom: 3px; }
-.step-content-desc { font-size: 0.75rem; color: var(--text2); line-height: 1.5; }
+  /* ==================== BROWSE SCREEN ==================== */
+  .search-row {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--bg2); border: 0.5px solid var(--border);
+    border-radius: 12px; padding: 11px 14px;
+    margin: 10px 20px;
+  }
+  .search-row span { font-size: 0.85rem; color: var(--text3); }
 
-/* CTA BANNER */
-.cta-banner {
-  margin: 20px; border-radius: 18px;
-  background: var(--gold-light); border: 1px solid var(--gold-border);
-  padding: 22px 18px; text-align: center;
-}
-.cta-banner h3 {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.2rem; color: var(--text); margin-bottom: 6px; line-height: 1.2;
-}
-.cta-banner p { font-size: 0.78rem; color: var(--text2); margin-bottom: 14px; }
+  .chips-row {
+    display: flex; gap: 8px; overflow-x: auto;
+    padding: 0 20px 12px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .chips-row::-webkit-scrollbar { display: none; }
 
-/* ===== BROWSE SCREEN ===== */
-.search-bar {
-  display: flex; align-items: center; gap: 8px;
-  background: var(--bg2); border: 1px solid var(--border);
-  border-radius: 12px; padding: 10px 14px;
-  margin: 12px 20px;
-}
-.search-bar span { font-size: 0.85rem; color: var(--text3); }
+  .filter-chip {
+    background: var(--bg2); border: 0.5px solid var(--border);
+    color: var(--text2); padding: 7px 14px; border-radius: 100px;
+    font-size: 0.75rem; cursor: pointer; white-space: nowrap;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s; flex-shrink: 0;
+    -webkit-user-select: none; user-select: none;
+  }
+  .filter-chip:active { opacity: 0.7; }
+  .filter-chip.active { background: var(--gold-light); border-color: var(--gold-border); color: var(--gold); }
 
-.filter-row {
-  display: flex; gap: 8px;
-  overflow-x: auto; padding: 0 20px 12px;
-}
-.filter-row::-webkit-scrollbar { display: none; }
-.filter-chip {
-  background: var(--bg2); border: 1px solid var(--border);
-  color: var(--text2); padding: 6px 14px; border-radius: 100px;
-  font-size: 0.75rem; cursor: pointer; white-space: nowrap;
-  font-family: 'DM Sans'; transition: all 0.2s; flex-shrink: 0;
-}
-.filter-chip.active, .filter-chip:hover {
-  background: var(--gold-light); border-color: var(--gold-border); color: var(--gold);
-}
+  .coach-list { display: flex; flex-direction: column; gap: 10px; padding: 0 20px 20px; }
 
-.coach-list { display: flex; flex-direction: column; gap: 10px; padding: 0 20px 20px; }
+  .list-item {
+    display: flex; gap: 12px; padding: 14px; cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .list-item:active { opacity: 0.8; }
+  .li-info { flex: 1; min-width: 0; }
+  .li-name { font-size: 0.92rem; font-weight: 500; margin-bottom: 1px; }
+  .li-country { font-size: 0.7rem; color: var(--text3); margin-bottom: 4px; }
+  .li-spec { font-size: 0.75rem; color: var(--text2); margin-bottom: 8px; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .li-bottom { display: flex; align-items: center; justify-content: space-between; }
+  .li-price { font-family: 'Playfair Display', serif; font-size: 1rem; }
+  .li-price span { font-family: 'DM Sans'; font-size: 0.65rem; color: var(--text3); }
+  .stars { color: var(--gold); font-size: 0.7rem; }
 
-.coach-list-item {
-  background: var(--bg2); border: 1px solid var(--border);
-  border-radius: 16px; padding: 14px;
-  display: flex; gap: 12px; cursor: pointer;
-  transition: border-color 0.2s;
-}
-.coach-list-item:hover { border-color: var(--gold-border); }
+  /* ==================== PROFILE SCREEN ==================== */
+  .profile-hero {
+    padding: 16px 20px 20px;
+    background: linear-gradient(180deg, rgba(200,151,58,0.06) 0%, transparent 100%);
+  }
+  .profile-name { font-family: 'Playfair Display', serif; font-size: 1.6rem; color: var(--text); margin: 12px 0 4px; }
+  .profile-meta { font-size: 0.75rem; color: var(--text2); display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+  .tag-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+  .bio-text { font-size: 0.83rem; color: var(--text2); line-height: 1.72; }
 
-.cli-info { flex: 1; }
-.cli-name { font-size: 0.92rem; font-weight: 500; color: var(--text); margin-bottom: 2px; }
-.cli-country { font-size: 0.7rem; color: var(--text3); margin-bottom: 4px; }
-.cli-spec { font-size: 0.75rem; color: var(--text2); margin-bottom: 8px; line-height: 1.4; }
-.cli-bottom { display: flex; align-items: center; justify-content: space-between; }
-.cli-price { font-family: 'Playfair Display', serif; font-size: 1rem; }
-.cli-price span { font-family: 'DM Sans'; font-size: 0.65rem; color: var(--text3); }
-.stars { color: var(--gold); font-size: 0.7rem; }
+  .profile-section { padding: 16px 20px; border-top: 0.5px solid var(--border); }
+  .profile-section-title { font-family: 'Playfair Display', serif; font-size: 1rem; margin-bottom: 10px; }
 
-/* ===== PROFILE SCREEN ===== */
-.profile-hero {
-  padding: 16px 20px 20px;
-  background: linear-gradient(180deg, rgba(200,151,58,0.06) 0%, transparent 100%);
-}
-.back-row {
-  display: flex; align-items: center; gap: 8px;
-  margin-bottom: 16px; cursor: pointer;
-  font-size: 0.82rem; color: var(--text2);
-  background: none; border: none;
-}
-.profile-av-lg {
-  width: 64px; height: 64px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'Playfair Display', serif; font-size: 1.5rem;
-  font-weight: 700; margin-bottom: 12px;
-}
-.profile-name {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.5rem; color: var(--text); margin-bottom: 4px;
-}
-.profile-meta { font-size: 0.75rem; color: var(--text2); display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
-.profile-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+  .review {
+    background: var(--bg2); border: 0.5px solid var(--border);
+    border-radius: 12px; padding: 12px; margin-bottom: 8px;
+  }
+  .review-stars { color: var(--gold); font-size: 0.75rem; margin-bottom: 4px; }
+  .review-text { font-size: 0.78rem; color: var(--text2); font-style: italic; line-height: 1.55; margin-bottom: 6px; }
+  .review-author { font-size: 0.68rem; color: var(--text3); }
 
-.bio-text { font-size: 0.82rem; color: var(--text2); line-height: 1.7; }
+  /* BOOKING FOOTER */
+  .booking-footer {
+    flex-shrink: 0;
+    background: rgba(10,22,14,0.98);
+    border-top: 0.5px solid var(--border);
+    padding: 14px 20px;
+    padding-bottom: calc(14px + var(--safe-bot));
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  }
+  .bf-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .bf-price { font-family: 'Playfair Display', serif; font-size: 1.4rem; }
+  .bf-price span { font-family: 'DM Sans'; font-size: 0.75rem; color: var(--text2); }
+  .bf-sub { font-size: 0.68rem; color: var(--text3); margin-top: 2px; }
 
-.section-heading {
-  font-family: 'Playfair Display', serif;
-  font-size: 1rem; color: var(--text); margin-bottom: 10px;
-}
+  /* SLOT BOTTOM SHEET */
+  .sheet-overlay {
+    position: absolute; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.65);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.25s;
+    display: flex; align-items: flex-end;
+  }
+  .sheet-overlay.open { opacity: 1; pointer-events: all; }
 
-.review-card {
-  background: var(--bg2); border: 1px solid var(--border);
-  border-radius: 12px; padding: 12px; margin-bottom: 8px;
-}
-.review-stars { color: var(--gold); font-size: 0.75rem; margin-bottom: 4px; }
-.review-text { font-size: 0.78rem; color: var(--text2); font-style: italic; line-height: 1.55; margin-bottom: 6px; }
-.review-author { font-size: 0.68rem; color: var(--text3); }
+  .bottom-sheet {
+    width: 100%;
+    background: #0f2018;
+    border-radius: 24px 24px 0 0;
+    border-top: 0.5px solid var(--border2);
+    padding: 16px 20px;
+    padding-bottom: calc(16px + var(--safe-bot));
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+  .sheet-overlay.open .bottom-sheet { transform: translateY(0); }
 
-/* BOOKING BOTTOM SHEET */
-.booking-sheet {
-  position: sticky; bottom: 0;
-  background: rgba(13,26,18,0.98);
-  border-top: 1px solid var(--border);
-  padding: 14px 20px 16px;
-  backdrop-filter: blur(10px);
-}
-.booking-sheet-top {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 10px;
-}
-.sheet-price {
-  font-family: 'Playfair Display', serif; font-size: 1.3rem; color: var(--text);
-}
-.sheet-price span { font-family: 'DM Sans'; font-size: 0.75rem; color: var(--text2); }
+  .sheet-handle { width: 36px; height: 4px; background: var(--border2); border-radius: 2px; margin: 0 auto 18px; }
+  .sheet-title { font-family: 'Playfair Display', serif; font-size: 1.1rem; margin-bottom: 14px; }
 
-/* SLOT PICKER */
-.slots-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 10px 0; }
-.slot {
-  background: var(--bg2); border: 1px solid var(--border);
-  border-radius: 10px; padding: 8px; text-align: center;
-  font-size: 0.75rem; cursor: pointer; transition: all 0.2s; color: var(--text2);
-}
-.slot:hover, .slot.sel { background: var(--gold-light); border-color: var(--gold); color: var(--gold); }
+  .slots-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+  .slot {
+    background: var(--bg2); border: 0.5px solid var(--border);
+    border-radius: 10px; padding: 10px; text-align: center;
+    font-size: 0.78rem; cursor: pointer; color: var(--text2);
+    transition: all 0.15s; -webkit-user-select: none; user-select: none;
+  }
+  .slot:active { opacity: 0.7; }
+  .slot.sel { background: var(--gold-light); border-color: var(--gold); color: var(--gold); }
 
-/* ===== ONBOARDING ===== */
-.onb-body { flex: 1; overflow-y: auto; padding: 20px; }
-.onb-body::-webkit-scrollbar { display: none; }
+  /* ==================== ONBOARDING ==================== */
+  .onb-content { flex: 1; overflow-y: auto; padding: 20px; -webkit-overflow-scrolling: touch; }
+  .onb-content::-webkit-scrollbar { display: none; }
 
-.prog-bar { height: 3px; background: var(--border); border-radius: 3px; margin-bottom: 24px; overflow: hidden; }
-.prog-fill { height: 100%; background: var(--gold); border-radius: 3px; transition: width 0.4s ease; }
+  .prog-bar { height: 3px; background: var(--border); border-radius: 3px; margin-bottom: 28px; overflow: hidden; }
+  .prog-fill { height: 100%; background: var(--gold); border-radius: 3px; transition: width 0.4s ease; }
 
-.onb-step-label { font-size: 0.7rem; color: var(--text3); margin-bottom: 4px; }
-.onb-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.5rem; color: var(--text); margin-bottom: 6px; line-height: 1.2;
-}
-.onb-sub { font-size: 0.82rem; color: var(--text2); line-height: 1.6; margin-bottom: 20px; }
+  .onb-step { display: none; }
+  .onb-step.active { display: block; }
 
-.options-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
-.opt {
-  background: var(--bg2); border: 1px solid var(--border);
-  border-radius: 14px; padding: 12px 14px;
-  display: flex; gap: 12px; align-items: center; cursor: pointer;
-  transition: all 0.2s;
-}
-.opt:hover, .opt.sel { border-color: var(--gold-border); background: var(--gold-light); }
-.opt-icon { font-size: 1.2rem; flex-shrink: 0; }
-.opt-title { font-size: 0.88rem; font-weight: 500; color: var(--text); }
-.opt-desc { font-size: 0.72rem; color: var(--text2); }
+  .onb-eyebrow { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text3); margin-bottom: 6px; }
+  .onb-title { font-family: 'Playfair Display', serif; font-size: 1.6rem; color: var(--text); margin-bottom: 8px; line-height: 1.15; }
+  .onb-sub { font-size: 0.84rem; color: var(--text2); line-height: 1.65; margin-bottom: 22px; }
 
-.text-inp {
-  width: 100%; background: var(--bg2); border: 1px solid var(--border);
-  border-radius: 12px; padding: 12px 14px;
-  color: var(--text); font-family: 'DM Sans'; font-size: 0.9rem;
-  margin-bottom: 10px; outline: none; transition: border-color 0.2s;
-}
-.text-inp:focus { border-color: var(--gold-border); }
-.text-inp::placeholder { color: var(--text3); }
+  .opt-list { display: flex; flex-direction: column; gap: 9px; margin-bottom: 22px; }
+  .opt {
+    display: flex; gap: 12px; align-items: center;
+    padding: 13px 14px; background: var(--bg2);
+    border: 0.5px solid var(--border); border-radius: 14px;
+    cursor: pointer; transition: all 0.15s;
+    -webkit-user-select: none; user-select: none;
+  }
+  .opt:active { opacity: 0.8; }
+  .opt.sel { border-color: var(--gold); background: var(--gold-light); }
+  .opt-icon { font-size: 1.2rem; flex-shrink: 0; }
+  .opt-title { font-size: 0.88rem; font-weight: 500; }
+  .opt-desc { font-size: 0.72rem; color: var(--text2); }
 
-.sel-inp {
-  width: 100%; background: var(--bg2); border: 1px solid var(--border);
-  border-radius: 12px; padding: 12px 14px;
-  color: var(--text); font-family: 'DM Sans'; font-size: 0.85rem;
-  margin-bottom: 10px; outline: none; appearance: none;
-}
-.sel-inp option { background: #1a2e20; }
+  .text-inp {
+    width: 100%; background: var(--bg2); border: 0.5px solid var(--border);
+    border-radius: 12px; padding: 13px 14px;
+    color: var(--text); font-family: 'DM Sans'; font-size: 0.9rem;
+    margin-bottom: 10px; outline: none;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+  .text-inp:focus { border-color: var(--gold-border); }
+  .text-inp::placeholder { color: var(--text3); }
 
-.budget-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 20px; }
-.budget-opt {
-  background: var(--bg2); border: 1px solid var(--border);
-  border-radius: 12px; padding: 12px 8px; text-align: center; cursor: pointer;
-  transition: all 0.2s;
-}
-.budget-opt:hover, .budget-opt.sel { border-color: var(--gold); background: var(--gold-light); }
-.budget-price { font-family: 'Playfair Display', serif; font-size: 0.95rem; margin-bottom: 2px; }
-.budget-label { font-size: 0.65rem; color: var(--text2); }
+  .sel-inp {
+    width: 100%; background: var(--bg2); border: 0.5px solid var(--border);
+    border-radius: 12px; padding: 13px 14px;
+    color: var(--text); font-family: 'DM Sans'; font-size: 0.88rem;
+    margin-bottom: 10px; outline: none; appearance: none;
+    -webkit-appearance: none;
+  }
+  .sel-inp option { background: #1a2e20; }
 
-/* MATCH CARD */
-.match-card {
-  background: var(--gold-light); border: 1px solid var(--gold-border);
-  border-radius: 16px; padding: 16px; margin-bottom: 14px;
-  display: flex; gap: 12px; align-items: center;
-}
+  .budget-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 22px; }
+  .budget-opt {
+    background: var(--bg2); border: 0.5px solid var(--border);
+    border-radius: 12px; padding: 14px 8px; text-align: center;
+    cursor: pointer; transition: all 0.15s;
+    -webkit-user-select: none; user-select: none;
+  }
+  .budget-opt:active { opacity: 0.7; }
+  .budget-opt.sel { border-color: var(--gold); background: var(--gold-light); }
+  .budget-price { font-family: 'Playfair Display', serif; font-size: 0.95rem; margin-bottom: 3px; }
+  .budget-label { font-size: 0.65rem; color: var(--text2); }
 
-/* ===== CONFIRM ===== */
-.confirm-body {
-  flex: 1; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; padding: 30px 24px; text-align: center;
-}
-.confirm-circle {
-  width: 72px; height: 72px; border-radius: 50%;
-  background: rgba(61,170,107,0.15); border: 1px solid rgba(61,170,107,0.3);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 2rem; margin: 0 auto 20px;
-}
-.confirm-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.7rem; color: var(--text); margin-bottom: 8px;
-}
-.confirm-sub { font-size: 0.85rem; color: var(--text2); line-height: 1.65; margin-bottom: 20px; }
+  .match-card {
+    display: flex; gap: 12px; align-items: center;
+    padding: 16px; background: var(--gold-light);
+    border: 0.5px solid var(--gold-border); border-radius: 16px;
+    margin-bottom: 14px; cursor: pointer;
+    -webkit-user-select: none; user-select: none;
+  }
+  .match-card:active { opacity: 0.85; }
 
-.confirm-card {
-  background: var(--bg2); border: 1px solid var(--border);
-  border-radius: 14px; padding: 14px; width: 100%; margin-bottom: 20px; text-align: left;
-}
-.c-row {
-  display: flex; justify-content: space-between; align-items: center;
-  font-size: 0.82rem; padding: 8px 0; border-bottom: 1px solid var(--border);
-}
-.c-row:last-child { border-bottom: none; }
-.c-label { color: var(--text2); }
-.c-val { font-weight: 500; }
+  /* ==================== CONFIRM ==================== */
+  .confirm-body {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 30px 24px; text-align: center;
+    overflow-y: auto;
+  }
+  .confirm-icon {
+    width: 76px; height: 76px; border-radius: 50%;
+    background: rgba(61,170,107,0.15); border: 0.5px solid rgba(61,170,107,0.35);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.2rem; margin: 0 auto 20px;
+  }
+  .confirm-title { font-family: 'Playfair Display', serif; font-size: 1.8rem; margin-bottom: 10px; }
+  .confirm-sub { font-size: 0.86rem; color: var(--text2); line-height: 1.65; margin-bottom: 22px; }
 
-/* PROFILE SCREEN MODAL for slot picker */
-.slot-modal {
-  display: none;
-  position: absolute; inset: 0; z-index: 80;
-  background: rgba(0,0,0,0.6);
-  align-items: flex-end;
-}
-.slot-modal.open { display: flex; }
-.slot-sheet {
-  background: #0f2018;
-  border-radius: 24px 24px 0 0;
-  padding: 20px;
-  width: 100%;
-  border-top: 1px solid var(--border);
-}
-.sheet-handle {
-  width: 40px; height: 4px; border-radius: 2px;
-  background: var(--border2); margin: 0 auto 16px;
-}
-.sheet-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.1rem; color: var(--text); margin-bottom: 14px;
-}
+  .confirm-card {
+    background: var(--bg2); border: 0.5px solid var(--border);
+    border-radius: 14px; padding: 14px; width: 100%; margin-bottom: 22px; text-align: left;
+  }
+  .c-row {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 0.83rem; padding: 9px 0;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .c-row:last-child { border-bottom: none; }
+  .c-label { color: var(--text2); }
+  .c-val { font-weight: 500; }
 
-/* Animate screens */
-@keyframes slideUp {
-  from { opacity:0; transform: translateY(20px); }
-  to { opacity:1; transform: translateY(0); }
-}
-.screen.active { animation: slideUp 0.25s ease; }
-
-/* NAV between screens via desktop label */
-.desktop-nav {
-  display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;
-}
-.dnav-btn {
-  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
-  color: rgba(255,255,255,0.5); padding: 6px 14px; border-radius: 100px;
-  font-size: 0.72rem; cursor: pointer; font-family: 'DM Sans';
-  transition: all 0.2s;
-}
-.dnav-btn:hover, .dnav-btn.active { background: rgba(200,151,58,0.15); border-color: rgba(200,151,58,0.3); color: #C8973A; }
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .screen.active .hero-band { animation: fadeUp 0.3s ease both; }
+  .screen.active .stats-strip { animation: fadeUp 0.35s 0.05s ease both; }
 </style>
 </head>
 <body>
+<div id="app">
 
-<div class="phone-wrap">
-  <div class="phone-label">Raíces — Prototipo Móvil</div>
-
-  <div class="phone">
-    <!-- NOTCH -->
-    <div class="notch">
-      <div class="notch-cam"></div>
-      <div class="notch-speaker"></div>
-    </div>
-
-    <!-- STATUS BAR -->
-    <div class="status-bar">
-      <div class="status-time">9:41</div>
-      <div class="status-icons">
-        <svg width="16" height="12" viewBox="0 0 16 12"><rect x="0" y="3" width="3" height="9" rx="1"/><rect x="4.5" y="2" width="3" height="10" rx="1"/><rect x="9" y="0" width="3" height="12" rx="1"/><rect x="13.5" y="0" width="2.5" height="12" rx="1" opacity="0.3"/></svg>
-        <svg width="15" height="12" viewBox="0 0 15 12"><path d="M7.5 2.5 C4 2.5 1 5 1 5 L7.5 11.5 L14 5 C14 5 11 2.5 7.5 2.5Z" opacity="0.4"/><path d="M7.5 5.5 C5.5 5.5 4 7 4 7 L7.5 10.5 L11 7 C11 7 9.5 5.5 7.5 5.5Z" opacity="0.7"/><circle cx="7.5" cy="9" r="1.5"/></svg>
-        <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="3" stroke="white" stroke-width="1" fill="none" opacity="0.5"/><rect x="1.5" y="2.5" width="16" height="7" rx="2" fill="white"/><rect x="22.5" y="4" width="2" height="4" rx="1" fill="white" opacity="0.5"/></svg>
+  <!-- ============ HOME ============ -->
+  <div class="screen active" id="s-home">
+    <div class="status-space"></div>
+    <div class="top-nav">
+      <div class="logo">ra<span>í</span>ces</div>
+      <div style="display:flex;gap:8px;">
+        <div class="icon-btn" onclick="goto('browse')">🔍</div>
+        <div class="icon-btn" onclick="goto('onboarding')">👤</div>
       </div>
     </div>
 
-    <!-- SCREEN AREA -->
-    <div class="screen-area">
-
-      <!-- ====== HOME ====== -->
-      <div class="screen active" id="s-home">
-        <div class="top-nav">
-          <div class="logo">ra<span>í</span>ces</div>
-          <div style="display:flex;gap:8px;">
-            <div class="nav-icon-btn" onclick="goto('onboarding')">🔍</div>
-            <div class="nav-icon-btn" onclick="goto('onboarding')">👤</div>
-          </div>
-        </div>
-
-        <div class="hero-scroll">
-          <!-- HERO -->
-          <div class="hero-banner">
-            <div class="badge">✦ Para la diáspora latina</div>
-            <h1 class="hero-title">Tu raíz,<br>tu <em>guía</em>,<br>tu futuro.</h1>
-            <p class="hero-sub">Coaches de vida certificados de LATAM, para latinos que viven en el exterior.</p>
-            <div class="hero-btns">
-              <button class="btn btn-primary btn-md" onclick="goto('onboarding')">Comenzar</button>
-              <button class="btn btn-ghost btn-md" onclick="goto('browse')">Ver coaches</button>
-            </div>
-          </div>
-
-          <!-- STATS -->
-          <div class="stats-row">
-            <div class="stat"><div class="stat-num">1,200+</div><div class="stat-label">Coaches</div></div>
-            <div class="stat"><div class="stat-num">18</div><div class="stat-label">Países</div></div>
-            <div class="stat"><div class="stat-num">94%</div><div class="stat-label">Satisfacción</div></div>
-          </div>
-
-          <!-- FEATURED COACHES -->
-          <div class="section" style="padding-bottom:10px;">
-            <div class="eyebrow">Disponibles ahora</div>
-            <div class="section-title">Coaches destacados</div>
-          </div>
-          <div class="coaches-scroll">
-            <div class="coach-mini" onclick="openProfile('maria')">
-              <div class="av av-gold">MR</div>
-              <div class="cm-name">María R.</div>
-              <div class="cm-country">🇲🇽 México</div>
-              <div class="tag">Identidad</div>
-              <div class="cm-bottom">
-                <div><div class="cm-price">$45</div><div class="cm-per">/sesión</div></div>
-                <div class="avail"><div class="avail-dot"></div>Disp.</div>
-              </div>
-            </div>
-            <div class="coach-mini" onclick="openProfile('carlos')">
-              <div class="av av-green">CL</div>
-              <div class="cm-name">Carlos L.</div>
-              <div class="cm-country">🇨🇴 Colombia</div>
-              <div class="tag">Carrera</div>
-              <div class="cm-bottom">
-                <div><div class="cm-price">$30</div><div class="cm-per">/sesión</div></div>
-                <div class="avail"><div class="avail-dot"></div>Disp.</div>
-              </div>
-            </div>
-            <div class="coach-mini" onclick="openProfile('valentina')">
-              <div class="av av-rose">VP</div>
-              <div class="cm-name">Valentina P.</div>
-              <div class="cm-country">🇦🇷 Argentina</div>
-              <div class="tag">Migración</div>
-              <div class="cm-bottom">
-                <div><div class="cm-price">$60</div><div class="cm-per">/sesión</div></div>
-                <div class="avail"><div class="avail-dot"></div>Disp.</div>
-              </div>
-            </div>
-            <div class="coach-mini" onclick="openProfile('jorge')">
-              <div class="av av-blue">JS</div>
-              <div class="cm-name">Jorge S.</div>
-              <div class="cm-country">🇵🇪 Perú</div>
-              <div class="tag">Familia</div>
-              <div class="cm-bottom">
-                <div><div class="cm-price">$20</div><div class="cm-per">/sesión</div></div>
-                <div class="avail"><div class="avail-dot"></div>Disp.</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="divider"></div>
-
-          <!-- HOW IT WORKS -->
-          <div class="section">
-            <div class="eyebrow">¿Cómo funciona?</div>
-            <div class="section-title">Tres pasos</div>
-            <div class="section-sub">Sin complicaciones, en español.</div>
-            <div class="steps">
-              <div class="step-row">
-                <div class="step-num-circle">01</div>
-                <div><div class="step-content-title">Cuéntanos tu historia</div><div class="step-content-desc">Completa tu perfil y tus metas de vida.</div></div>
-              </div>
-              <div class="step-row">
-                <div class="step-num-circle">02</div>
-                <div><div class="step-content-title">Elige tu coach</div><div class="step-content-desc">Filtra por especialidad, país y presupuesto.</div></div>
-              </div>
-              <div class="step-row">
-                <div class="step-num-circle">03</div>
-                <div><div class="step-content-title">Empieza tu camino</div><div class="step-content-desc">Sesión de prueba sin compromiso.</div></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- CTA -->
-          <div class="cta-banner">
-            <h3>Tu historia merece ser guiada.</h3>
-            <p>Únete a miles de latinos que encontraron claridad con Raíces.</p>
-            <button class="btn btn-primary btn-md" onclick="goto('onboarding')">Empezar gratis</button>
-          </div>
-        </div>
-
-        <!-- TAB BAR -->
-        <div class="tab-bar">
-          <div class="tab-item active" onclick="goto('home')"><div class="tab-icon">🏠</div><div class="tab-label" style="color:var(--gold)">Inicio</div></div>
-          <div class="tab-item" onclick="goto('browse')"><div class="tab-icon">🔍</div><div class="tab-label">Coaches</div></div>
-          <div class="tab-item" onclick="goto('onboarding')"><div class="tab-icon">📅</div><div class="tab-label">Sesiones</div></div>
-          <div class="tab-item" onclick="goto('onboarding')"><div class="tab-icon">👤</div><div class="tab-label">Perfil</div></div>
+    <div class="scroll-content">
+      <div class="hero-band">
+        <div class="badge">✦ Para la diáspora latina</div>
+        <div class="hero-title">Tu raíz,<br>tu <em>guía</em>,<br>tu futuro.</div>
+        <p class="hero-sub">Coaches de vida certificados de LATAM, para latinos que viven en el exterior.</p>
+        <div class="hero-btns">
+          <button class="btn btn-primary btn-md" onclick="goto('onboarding')">Comenzar</button>
+          <button class="btn btn-ghost btn-md" onclick="goto('browse')">Ver coaches</button>
         </div>
       </div>
 
-      <!-- ====== BROWSE ====== -->
-      <div class="screen" id="s-browse">
-        <div class="top-nav">
-          <div class="logo">ra<span>í</span>ces</div>
-          <div class="nav-icon-btn">⚙️</div>
-        </div>
-
-        <div class="search-bar">
-          <span>🔍</span>
-          <span>Buscar coaches...</span>
-        </div>
-
-        <div class="filter-row">
-          <div class="filter-chip active">Todos</div>
-          <div class="filter-chip">Migración</div>
-          <div class="filter-chip">Carrera</div>
-          <div class="filter-chip">Familia</div>
-          <div class="filter-chip">Identidad</div>
-          <div class="filter-chip">Finanzas</div>
-        </div>
-
-        <div style="flex:1;overflow-y:auto;padding-bottom:8px;">
-          <div class="coach-list">
-
-            <div class="coach-list-item" onclick="openProfile('maria')">
-              <div class="av av-gold" style="flex-shrink:0;">MR</div>
-              <div class="cli-info">
-                <div class="cli-name">María Rodríguez</div>
-                <div class="cli-country">🇲🇽 México · <span class="stars">★★★★★</span> 4.9</div>
-                <div class="cli-spec">Identidad, pertenencia y choque cultural</div>
-                <div class="cli-bottom">
-                  <div class="cli-price">$45 <span>/sesión</span></div>
-                  <div class="avail"><div class="avail-dot"></div>Disponible</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="coach-list-item" onclick="openProfile('carlos')">
-              <div class="av av-green" style="flex-shrink:0;">CL</div>
-              <div class="cli-info">
-                <div class="cli-name">Carlos Lagos</div>
-                <div class="cli-country">🇨🇴 Colombia · <span class="stars">★★★★★</span> 4.8</div>
-                <div class="cli-spec">Carrera, propósito y liderazgo</div>
-                <div class="cli-bottom">
-                  <div class="cli-price">$30 <span>/sesión</span></div>
-                  <div class="avail"><div class="avail-dot"></div>Disponible</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="coach-list-item" onclick="openProfile('valentina')">
-              <div class="av av-rose" style="flex-shrink:0;">VP</div>
-              <div class="cli-info">
-                <div class="cli-name">Valentina Paz</div>
-                <div class="cli-country">🇦🇷 Argentina · <span class="stars">★★★★★</span> 5.0</div>
-                <div class="cli-spec">Duelo migratorio y salud emocional</div>
-                <div class="cli-bottom">
-                  <div class="cli-price">$60 <span>/sesión</span></div>
-                  <div class="avail"><div class="avail-dot"></div>Disponible</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="coach-list-item" onclick="openProfile('jorge')">
-              <div class="av av-blue" style="flex-shrink:0;">JS</div>
-              <div class="cli-info">
-                <div class="cli-name">Jorge Sánchez</div>
-                <div class="cli-country">🇵🇪 Perú · <span class="stars">★★★★☆</span> 4.7</div>
-                <div class="cli-spec">Relaciones y familia transnacional</div>
-                <div class="cli-bottom">
-                  <div class="cli-price">$20 <span>/sesión</span></div>
-                  <div class="avail"><div class="avail-dot"></div>Disponible</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="coach-list-item" onclick="openProfile('lucia')">
-              <div class="av av-purple" style="flex-shrink:0;">LM</div>
-              <div class="cli-info">
-                <div class="cli-name">Lucía Morales</div>
-                <div class="cli-country">🇨🇱 Chile · <span class="stars">★★★★★</span> 4.9</div>
-                <div class="cli-spec">Finanzas personales y metas de vida</div>
-                <div class="cli-bottom">
-                  <div class="cli-price">$35 <span>/sesión</span></div>
-                  <div class="avail"><div class="avail-dot"></div>Disponible</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="coach-list-item" onclick="goto('onboarding')">
-              <div class="av av-teal" style="flex-shrink:0;">RG</div>
-              <div class="cli-info">
-                <div class="cli-name">Rodrigo Guimarães</div>
-                <div class="cli-country">🇧🇷 Brasil · <span class="stars">★★★★☆</span> 4.6</div>
-                <div class="cli-spec">Mentalidad y desarrollo personal</div>
-                <div class="cli-bottom">
-                  <div class="cli-price">$15 <span>/sesión</span></div>
-                  <div class="avail"><div class="avail-dot"></div>Disponible</div>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        <div class="tab-bar">
-          <div class="tab-item" onclick="goto('home')"><div class="tab-icon">🏠</div><div class="tab-label">Inicio</div></div>
-          <div class="tab-item active" onclick="goto('browse')"><div class="tab-icon">🔍</div><div class="tab-label" style="color:var(--gold)">Coaches</div></div>
-          <div class="tab-item" onclick="goto('onboarding')"><div class="tab-icon">📅</div><div class="tab-label">Sesiones</div></div>
-          <div class="tab-item" onclick="goto('onboarding')"><div class="tab-icon">👤</div><div class="tab-label">Perfil</div></div>
-        </div>
+      <div class="stats-strip">
+        <div class="stat-cell"><div class="stat-n">1,200+</div><div class="stat-l">Coaches</div></div>
+        <div class="stat-cell"><div class="stat-n">18</div><div class="stat-l">Países</div></div>
+        <div class="stat-cell"><div class="stat-n">94%</div><div class="stat-l">Satisfacción</div></div>
       </div>
 
-      <!-- ====== PROFILE ====== -->
-      <div class="screen" id="s-profile">
-        <div style="flex:1;overflow-y:auto;">
-          <div class="profile-hero">
-            <button class="back-row" onclick="goto('browse')">← Volver</button>
-            <div class="profile-av-lg" id="m-av" style="background:var(--gold);color:#0D1A12;">MR</div>
-            <div class="profile-name" id="m-name">María Rodríguez</div>
-            <div class="profile-meta">
-              <span id="m-country">🇲🇽 México</span>
-              <span>·</span>
-              <span><span class="stars">★★★★★</span> <span id="m-rating">4.9</span></span>
-              <span>·</span>
-              <span id="m-sessions">312 sesiones</span>
-            </div>
-            <div class="profile-tags" id="m-tags"></div>
-            <p class="bio-text" id="m-bio">Soy coach certificada con 6 años acompañando a latinos que viven fuera de su país.</p>
-          </div>
-
-          <div class="section" style="padding-top:16px;">
-            <div class="section-heading">Reseñas</div>
-            <div class="review-card">
-              <div class="review-stars">★★★★★</div>
-              <div class="review-text">"Por primera vez sentí que alguien entendía lo que es extrañar a tu familia y seguir creciendo."</div>
-              <div class="review-author">— Ana P., venezolana en España</div>
-            </div>
-            <div class="review-card">
-              <div class="review-stars">★★★★★</div>
-              <div class="review-text">"Llegué perdida. Después de 4 sesiones, tengo claridad y un plan concreto."</div>
-              <div class="review-author">— Daniela M., mexicana en Canadá</div>
-            </div>
-            <div style="height:120px;"></div>
+      <div class="section" style="padding-bottom:8px;">
+        <div class="eyebrow">Disponibles ahora</div>
+        <div class="sec-title">Coaches destacados</div>
+      </div>
+      <div class="h-scroll">
+        <div class="card coach-chip" onclick="openProfile('maria')">
+          <div class="av av-sm av-gold">MR</div>
+          <div class="chip-name">María R.</div>
+          <div class="chip-country">🇲🇽 México</div>
+          <div class="tag">Identidad</div>
+          <div class="chip-bottom">
+            <div><div class="chip-price">$45</div><div class="chip-per">/sesión</div></div>
+            <div class="avail"><div class="avail-dot"></div>Disp.</div>
           </div>
         </div>
-
-        <!-- BOOKING BOTTOM SHEET -->
-        <div class="booking-sheet">
-          <div class="booking-sheet-top">
-            <div><div class="sheet-price"><span id="m-price">$45</span> <span>/sesión</span></div><div style="font-size:0.68rem;color:var(--text3);">60 min · Google Meet</div></div>
-            <button class="btn btn-primary btn-md" onclick="openSlots()">Reservar</button>
+        <div class="card coach-chip" onclick="openProfile('carlos')">
+          <div class="av av-sm av-green">CL</div>
+          <div class="chip-name">Carlos L.</div>
+          <div class="chip-country">🇨🇴 Colombia</div>
+          <div class="tag">Carrera</div>
+          <div class="chip-bottom">
+            <div><div class="chip-price">$30</div><div class="chip-per">/sesión</div></div>
+            <div class="avail"><div class="avail-dot"></div>Disp.</div>
           </div>
         </div>
-
-        <!-- SLOT PICKER MODAL -->
-        <div class="slot-modal" id="slot-modal" onclick="closeSlots(event)">
-          <div class="slot-sheet">
-            <div class="sheet-handle"></div>
-            <div class="sheet-title">Elige un horario</div>
-            <div class="slots-grid">
-              <div class="slot" onclick="pickSlot(this)">Mar 25, 10:00am</div>
-              <div class="slot" onclick="pickSlot(this)">Mar 25, 2:00pm</div>
-              <div class="slot" onclick="pickSlot(this)">Mar 26, 11:00am</div>
-              <div class="slot" onclick="pickSlot(this)">Mar 27, 9:00am</div>
-              <div class="slot" onclick="pickSlot(this)">Mar 28, 4:00pm</div>
-              <div class="slot" onclick="pickSlot(this)">Mar 29, 10:00am</div>
-            </div>
-            <button class="btn btn-primary btn-full" style="margin-top:10px;" onclick="goto('confirm')">Confirmar sesión</button>
-            <div style="font-size:0.68rem;color:var(--text3);text-align:center;margin-top:8px;">Cancela gratis 24h antes</div>
+        <div class="card coach-chip" onclick="openProfile('valentina')">
+          <div class="av av-sm av-rose">VP</div>
+          <div class="chip-name">Valentina P.</div>
+          <div class="chip-country">🇦🇷 Argentina</div>
+          <div class="tag">Migración</div>
+          <div class="chip-bottom">
+            <div><div class="chip-price">$60</div><div class="chip-per">/sesión</div></div>
+            <div class="avail"><div class="avail-dot"></div>Disp.</div>
+          </div>
+        </div>
+        <div class="card coach-chip" onclick="openProfile('jorge')">
+          <div class="av av-sm av-blue">JS</div>
+          <div class="chip-name">Jorge S.</div>
+          <div class="chip-country">🇵🇪 Perú</div>
+          <div class="tag">Familia</div>
+          <div class="chip-bottom">
+            <div><div class="chip-price">$20</div><div class="chip-per">/sesión</div></div>
+            <div class="avail"><div class="avail-dot"></div>Disp.</div>
+          </div>
+        </div>
+        <div class="card coach-chip" onclick="openProfile('lucia')">
+          <div class="av av-sm av-purple">LM</div>
+          <div class="chip-name">Lucía M.</div>
+          <div class="chip-country">🇨🇱 Chile</div>
+          <div class="tag">Finanzas</div>
+          <div class="chip-bottom">
+            <div><div class="chip-price">$35</div><div class="chip-per">/sesión</div></div>
+            <div class="avail"><div class="avail-dot"></div>Disp.</div>
           </div>
         </div>
       </div>
 
-      <!-- ====== ONBOARDING ====== -->
-      <div class="screen" id="s-onboarding">
-        <div class="top-nav">
-          <div class="logo">ra<span>í</span>ces</div>
-          <button class="btn btn-ghost btn-sm" onclick="goto('home')">Salir</button>
-        </div>
-        <div class="onb-body">
-          <div class="prog-bar"><div class="prog-fill" id="onb-prog" style="width:25%"></div></div>
+      <div class="divider" style="margin:8px 0;"></div>
 
-          <!-- STEP 1 -->
-          <div id="o1">
-            <div class="onb-step-label">Paso 1 de 4</div>
-            <div class="onb-title">¿Cuál es tu mayor reto?</div>
-            <div class="onb-sub">Selecciona el área donde necesitas más apoyo.</div>
-            <div class="options-list">
-              <div class="opt" onclick="selOpt(this)"><div class="opt-icon">🧭</div><div><div class="opt-title">Identidad y pertenencia</div><div class="opt-desc">Me cuesta sentirme "en casa"</div></div></div>
-              <div class="opt" onclick="selOpt(this)"><div class="opt-icon">💼</div><div><div class="opt-title">Carrera y propósito</div><div class="opt-desc">No sé qué sigue profesionalmente</div></div></div>
-              <div class="opt" onclick="selOpt(this)"><div class="opt-icon">👨‍👩‍👧</div><div><div class="opt-title">Familia y relaciones</div><div class="opt-desc">La distancia afecta mis vínculos</div></div></div>
-              <div class="opt" onclick="selOpt(this)"><div class="opt-icon">😔</div><div><div class="opt-title">Duelo migratorio</div><div class="opt-desc">Extraño mi país y mi gente</div></div></div>
-              <div class="opt" onclick="selOpt(this)"><div class="opt-icon">💰</div><div><div class="opt-title">Finanzas personales</div><div class="opt-desc">Quiero ordenar mi economía</div></div></div>
-            </div>
-            <button class="btn btn-primary btn-full" onclick="nextOnb(2)">Continuar →</button>
+      <div class="section">
+        <div class="eyebrow">¿Cómo funciona?</div>
+        <div class="sec-title">Tres pasos</div>
+        <div class="steps-list">
+          <div class="step-row">
+            <div class="step-circle">01</div>
+            <div><div class="step-t">Cuéntanos tu historia</div><div class="step-d">Completa tu perfil y tus metas de vida.</div></div>
           </div>
-
-          <!-- STEP 2 -->
-          <div id="o2" style="display:none">
-            <div class="onb-step-label">Paso 2 de 4</div>
-            <div class="onb-title">Cuéntanos sobre ti</div>
-            <div class="onb-sub">Para encontrar el coach que mejor te entiende.</div>
-            <input class="text-inp" type="text" placeholder="Tu nombre">
-            <input class="text-inp" type="email" placeholder="Tu correo electrónico">
-            <select class="sel-inp">
-              <option>¿De qué país eres?</option>
-              <option>🇲🇽 México</option><option>🇨🇴 Colombia</option><option>🇦🇷 Argentina</option>
-              <option>🇻🇪 Venezuela</option><option>🇵🇪 Perú</option><option>🇨🇱 Chile</option>
-              <option>Otro</option>
-            </select>
-            <select class="sel-inp">
-              <option>¿En qué país vives ahora?</option>
-              <option>🇺🇸 Estados Unidos</option><option>🇪🇸 España</option><option>🇨🇦 Canadá</option>
-              <option>🇩🇪 Alemania</option><option>🇬🇧 Reino Unido</option><option>Otro</option>
-            </select>
-            <button class="btn btn-primary btn-full" onclick="nextOnb(3)" style="margin-top:6px;">Continuar →</button>
+          <div class="step-row">
+            <div class="step-circle">02</div>
+            <div><div class="step-t">Elige tu coach</div><div class="step-d">Filtra por especialidad, país y presupuesto.</div></div>
           </div>
-
-          <!-- STEP 3 -->
-          <div id="o3" style="display:none">
-            <div class="onb-step-label">Paso 3 de 4</div>
-            <div class="onb-title">¿Cuánto quieres invertir?</div>
-            <div class="onb-sub">Tenemos coaches para todos los presupuestos.</div>
-            <div class="budget-grid">
-              <div class="budget-opt" onclick="selBudget(this)"><div class="budget-price">$10–$25</div><div class="budget-label">Económico</div></div>
-              <div class="budget-opt" onclick="selBudget(this)"><div class="budget-price">$25–$50</div><div class="budget-label">Intermedio</div></div>
-              <div class="budget-opt" onclick="selBudget(this)"><div class="budget-price">$50+</div><div class="budget-label">Premium</div></div>
-            </div>
-            <select class="sel-inp" style="margin-bottom:16px;">
-              <option>¿Cada cuánto quieres sesiones?</option>
-              <option>Una vez por semana</option>
-              <option>Cada dos semanas</option>
-              <option>Una vez al mes</option>
-            </select>
-            <button class="btn btn-primary btn-full" onclick="nextOnb(4)">Ver mi match →</button>
-          </div>
-
-          <!-- STEP 4 -->
-          <div id="o4" style="display:none">
-            <div class="onb-step-label">Tu match</div>
-            <div class="onb-title">¡Encontramos tu coach!</div>
-            <div class="onb-sub">Basándonos en tus respuestas, esta es nuestra recomendación.</div>
-            <div class="match-card" onclick="openProfile('maria')">
-              <div class="av av-gold">MR</div>
-              <div>
-                <div style="font-size:0.88rem;font-weight:500;color:var(--text);">María Rodríguez</div>
-                <div style="font-size:0.72rem;color:var(--text2);">🇲🇽 México · <span class="stars">★★★★★</span> 4.9</div>
-                <div class="tag" style="margin-top:5px;">Identidad & Pertenencia</div>
-              </div>
-              <div style="margin-left:auto;text-align:right;">
-                <div style="font-family:'Playfair Display',serif;font-size:1rem;">$45</div>
-                <div style="font-size:0.65rem;color:var(--text3);">/sesión</div>
-              </div>
-            </div>
-            <button class="btn btn-primary btn-full" onclick="openProfile('maria')" style="margin-bottom:10px;">Ver perfil y reservar</button>
-            <button class="btn btn-ghost btn-full" onclick="goto('browse')">Explorar más coaches</button>
+          <div class="step-row">
+            <div class="step-circle">03</div>
+            <div><div class="step-t">Empieza tu camino</div><div class="step-d">Sesión de prueba sin compromiso a largo plazo.</div></div>
           </div>
         </div>
       </div>
 
-      <!-- ====== CONFIRM ====== -->
-      <div class="screen" id="s-confirm">
-        <div class="confirm-body">
-          <div class="confirm-circle">✓</div>
-          <div class="confirm-title">¡Sesión reservada!</div>
-          <p class="confirm-sub">Tu sesión con <strong id="c-name">María Rodríguez</strong> está confirmada. Recibirás el enlace de Google Meet por correo.</p>
-          <div class="confirm-card">
-            <div class="c-row"><span class="c-label">Coach</span><span class="c-val" id="c-coach">María Rodríguez</span></div>
-            <div class="c-row"><span class="c-label">Fecha</span><span class="c-val">Martes, 25 de marzo</span></div>
-            <div class="c-row"><span class="c-label">Hora</span><span class="c-val">10:00am EST</span></div>
-            <div class="c-row"><span class="c-label">Duración</span><span class="c-val">60 minutos</span></div>
-            <div class="c-row"><span class="c-label">Total</span><span class="c-val" id="c-total">$45.00</span></div>
-          </div>
-          <button class="btn btn-primary btn-full" onclick="goto('home')">Volver al inicio</button>
-        </div>
+      <div class="cta-band">
+        <h3>Tu historia merece ser guiada.</h3>
+        <p>Únete a miles de latinos que encontraron claridad con Raíces.</p>
+        <button class="btn btn-primary btn-md" onclick="goto('onboarding')">Empezar gratis</button>
       </div>
+    </div>
 
-    </div><!-- end screen-area -->
-
-    <div class="home-bar"><div class="home-indicator"></div></div>
-  </div><!-- end phone -->
-
-  <!-- DESKTOP NAV BELOW PHONE -->
-  <div class="desktop-nav">
-    <div class="dnav-btn active" id="dn-home" onclick="goto('home')">🏠 Inicio</div>
-    <div class="dnav-btn" id="dn-browse" onclick="goto('browse')">🔍 Coaches</div>
-    <div class="dnav-btn" id="dn-profile" onclick="openProfile('maria')">👤 Perfil</div>
-    <div class="dnav-btn" id="dn-onboarding" onclick="goto('onboarding')">📋 Onboarding</div>
-    <div class="dnav-btn" id="dn-confirm" onclick="goto('confirm')">✅ Confirmación</div>
+    <div class="tab-bar">
+      <div class="tab active" onclick="goto('home')"><div class="tab-icon">🏠</div><div class="tab-label" style="color:var(--gold)">Inicio</div></div>
+      <div class="tab" onclick="goto('browse')"><div class="tab-icon">🔍</div><div class="tab-label">Coaches</div></div>
+      <div class="tab" onclick="goto('onboarding')"><div class="tab-icon">📅</div><div class="tab-label">Sesiones</div></div>
+      <div class="tab" onclick="goto('onboarding')"><div class="tab-icon">👤</div><div class="tab-label">Perfil</div></div>
+    </div>
   </div>
-</div>
+
+  <!-- ============ BROWSE ============ -->
+  <div class="screen" id="s-browse">
+    <div class="status-space"></div>
+    <div class="top-nav">
+      <div class="logo">ra<span>í</span>ces</div>
+      <div class="icon-btn">⚙️</div>
+    </div>
+
+    <div class="search-row">
+      <span>🔍</span>
+      <span>Buscar coaches...</span>
+    </div>
+
+    <div class="chips-row">
+      <div class="filter-chip active" onclick="setFilter(this)">Todos</div>
+      <div class="filter-chip" onclick="setFilter(this)">Migración</div>
+      <div class="filter-chip" onclick="setFilter(this)">Carrera</div>
+      <div class="filter-chip" onclick="setFilter(this)">Familia</div>
+      <div class="filter-chip" onclick="setFilter(this)">Identidad</div>
+      <div class="filter-chip" onclick="setFilter(this)">Finanzas</div>
+    </div>
+
+    <div class="scroll-content">
+      <div class="coach-list">
+        <div class="card list-item" onclick="openProfile('maria')">
+          <div class="av av-sm av-gold">MR</div>
+          <div class="li-info">
+            <div class="li-name">María Rodríguez</div>
+            <div class="li-country">🇲🇽 México · <span class="stars">★★★★★</span> 4.9</div>
+            <div class="li-spec">Identidad, pertenencia y choque cultural</div>
+            <div class="li-bottom"><div class="li-price">$45 <span>/sesión</span></div><div class="avail"><div class="avail-dot"></div>Disponible</div></div>
+          </div>
+        </div>
+        <div class="card list-item" onclick="openProfile('carlos')">
+          <div class="av av-sm av-green">CL</div>
+          <div class="li-info">
+            <div class="li-name">Carlos Lagos</div>
+            <div class="li-country">🇨🇴 Colombia · <span class="stars">★★★★★</span> 4.8</div>
+            <div class="li-spec">Carrera, propósito y liderazgo</div>
+            <div class="li-bottom"><div class="li-price">$30 <span>/sesión</span></div><div class="avail"><div class="avail-dot"></div>Disponible</div></div>
+          </div>
+        </div>
+        <div class="card list-item" onclick="openProfile('valentina')">
+          <div class="av av-sm av-rose">VP</div>
+          <div class="li-info">
+            <div class="li-name">Valentina Paz</div>
+            <div class="li-country">🇦🇷 Argentina · <span class="stars">★★★★★</span> 5.0</div>
+            <div class="li-spec">Duelo migratorio y salud emocional</div>
+            <div class="li-bottom"><div class="li-price">$60 <span>/sesión</span></div><div class="avail"><div class="avail-dot"></div>Disponible</div></div>
+          </div>
+        </div>
+        <div class="card list-item" onclick="openProfile('jorge')">
+          <div class="av av-sm av-blue">JS</div>
+          <div class="li-info">
+            <div class="li-name">Jorge Sánchez</div>
+            <div class="li-country">🇵🇪 Perú · <span class="stars">★★★★☆</span> 4.7</div>
+            <div class="li-spec">Relaciones y familia transnacional</div>
+            <div class="li-bottom"><div class="li-price">$20 <span>/sesión</span></div><div class="avail"><div class="avail-dot"></div>Disponible</div></div>
+          </div>
+        </div>
+        <div class="card list-item" onclick="openProfile('lucia')">
+          <div class="av av-sm av-purple">LM</div>
+          <div class="li-info">
+            <div class="li-name">Lucía Morales</div>
+            <div class="li-country">🇨🇱 Chile · <span class="stars">★★★★★</span> 4.9</div>
+            <div class="li-spec">Finanzas personales y metas de vida</div>
+            <div class="li-bottom"><div class="li-price">$35 <span>/sesión</span></div><div class="avail"><div class="avail-dot"></div>Disponible</div></div>
+          </div>
+        </div>
+        <div class="card list-item" onclick="goto('onboarding')">
+          <div class="av av-sm av-teal">RG</div>
+          <div class="li-info">
+            <div class="li-name">Rodrigo Guimarães</div>
+            <div class="li-country">🇧🇷 Brasil · <span class="stars">★★★★☆</span> 4.6</div>
+            <div class="li-spec">Mentalidad y desarrollo personal</div>
+            <div class="li-bottom"><div class="li-price">$15 <span>/sesión</span></div><div class="avail"><div class="avail-dot"></div>Disponible</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-bar">
+      <div class="tab" onclick="goto('home')"><div class="tab-icon">🏠</div><div class="tab-label">Inicio</div></div>
+      <div class="tab active" onclick="goto('browse')"><div class="tab-icon">🔍</div><div class="tab-label" style="color:var(--gold)">Coaches</div></div>
+      <div class="tab" onclick="goto('onboarding')"><div class="tab-icon">📅</div><div class="tab-label">Sesiones</div></div>
+      <div class="tab" onclick="goto('onboarding')"><div class="tab-icon">👤</div><div class="tab-label">Perfil</div></div>
+    </div>
+  </div>
+
+  <!-- ============ PROFILE ============ -->
+  <div class="screen" id="s-profile">
+    <div class="status-space"></div>
+    <div class="top-nav">
+      <button class="back-btn" onclick="goto('browse')">← Volver</button>
+      <div class="icon-btn" onclick="goto('browse')">♡</div>
+    </div>
+
+    <div class="scroll-content">
+      <div class="profile-hero">
+        <div class="av av-lg av-gold" id="p-av">MR</div>
+        <div class="profile-name" id="p-name">María Rodríguez</div>
+        <div class="profile-meta">
+          <span id="p-country">🇲🇽 México</span>·
+          <span><span class="stars">★★★★★</span> <span id="p-rating">4.9</span></span>·
+          <span id="p-sessions">312 sesiones</span>
+        </div>
+        <div class="tag-row" id="p-tags"></div>
+        <p class="bio-text" id="p-bio">Soy coach certificada con 6 años acompañando a latinos que viven fuera de su país.</p>
+      </div>
+
+      <div class="profile-section">
+        <div class="profile-section-title">Reseñas recientes</div>
+        <div class="review">
+          <div class="review-stars">★★★★★</div>
+          <div class="review-text">"Por primera vez sentí que alguien entendía lo que es extrañar a tu familia y seguir creciendo al mismo tiempo."</div>
+          <div class="review-author">— Ana P., venezolana en España</div>
+        </div>
+        <div class="review">
+          <div class="review-stars">★★★★★</div>
+          <div class="review-text">"Llegué perdida. Después de 4 sesiones, tengo claridad y un plan concreto para mi vida."</div>
+          <div class="review-author">— Daniela M., mexicana en Canadá</div>
+        </div>
+        <div class="review">
+          <div class="review-stars">★★★★☆</div>
+          <div class="review-text">"Muy buena escucha activa. Me ayudó a entender mis patrones de comportamiento."</div>
+          <div class="review-author">— Tomás R., argentino en EE.UU.</div>
+        </div>
+        <div style="height: 100px;"></div>
+      </div>
+    </div>
+
+    <div class="booking-footer">
+      <div class="bf-row">
+        <div>
+          <div class="bf-price"><span id="p-price">$45</span> <span>/ sesión</span></div>
+          <div class="bf-sub">60 min · Google Meet · Sin compromiso</div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="openSheet()">Reservar →</button>
+      </div>
+    </div>
+
+    <!-- SLOT SHEET -->
+    <div class="sheet-overlay" id="sheet-overlay" onclick="closeSheet(event)">
+      <div class="bottom-sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title">Elige un horario</div>
+        <div class="slots-grid">
+          <div class="slot" onclick="pickSlot(this)">Mar 25, 10:00am</div>
+          <div class="slot" onclick="pickSlot(this)">Mar 25, 2:00pm</div>
+          <div class="slot" onclick="pickSlot(this)">Mar 26, 11:00am</div>
+          <div class="slot" onclick="pickSlot(this)">Mar 27, 9:00am</div>
+          <div class="slot" onclick="pickSlot(this)">Mar 28, 4:00pm</div>
+          <div class="slot" onclick="pickSlot(this)">Mar 29, 10:00am</div>
+        </div>
+        <button class="btn btn-primary btn-full" onclick="goto('confirm')">Confirmar sesión</button>
+        <p style="font-size:0.68rem;color:var(--text3);text-align:center;margin-top:8px;">Cancela gratis hasta 24h antes</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ ONBOARDING ============ -->
+  <div class="screen" id="s-onboarding">
+    <div class="status-space"></div>
+    <div class="top-nav">
+      <div class="logo">ra<span>í</span>ces</div>
+      <button class="btn btn-ghost btn-sm" onclick="goto('home')" style="font-size:0.78rem;">Salir</button>
+    </div>
+
+    <div class="onb-content">
+      <div class="prog-bar"><div class="prog-fill" id="onb-prog" style="width:25%"></div></div>
+
+      <div class="onb-step active" id="o1">
+        <div class="onb-eyebrow">Paso 1 de 4</div>
+        <div class="onb-title">¿Cuál es tu mayor reto ahora?</div>
+        <p class="onb-sub">Selecciona el área donde necesitas más apoyo.</p>
+        <div class="opt-list">
+          <div class="opt" onclick="selOpt(this)"><div class="opt-icon">🧭</div><div><div class="opt-title">Identidad y pertenencia</div><div class="opt-desc">Me cuesta sentirme "en casa"</div></div></div>
+          <div class="opt" onclick="selOpt(this)"><div class="opt-icon">💼</div><div><div class="opt-title">Carrera y propósito</div><div class="opt-desc">No sé qué sigue profesionalmente</div></div></div>
+          <div class="opt" onclick="selOpt(this)"><div class="opt-icon">👨‍👩‍👧</div><div><div class="opt-title">Familia y relaciones</div><div class="opt-desc">La distancia afecta mis vínculos</div></div></div>
+          <div class="opt" onclick="selOpt(this)"><div class="opt-icon">😔</div><div><div class="opt-title">Duelo migratorio</div><div class="opt-desc">Extraño mi país y mi gente</div></div></div>
+          <div class="opt" onclick="selOpt(this)"><div class="opt-icon">💰</div><div><div class="opt-title">Finanzas personales</div><div class="opt-desc">Quiero ordenar mi economía</div></div></div>
+        </div>
+        <button class="btn btn-primary btn-full" onclick="nextStep(2)">Continuar →</button>
+      </div>
+
+      <div class="onb-step" id="o2">
+        <div class="onb-eyebrow">Paso 2 de 4</div>
+        <div class="onb-title">Cuéntanos sobre ti</div>
+        <p class="onb-sub">Para encontrar el coach que mejor te entiende.</p>
+        <input class="text-inp" type="text" placeholder="Tu nombre">
+        <input class="text-inp" type="email" placeholder="Tu correo electrónico">
+        <select class="sel-inp">
+          <option>¿De qué país eres?</option>
+          <option>🇲🇽 México</option><option>🇨🇴 Colombia</option><option>🇦🇷 Argentina</option>
+          <option>🇻🇪 Venezuela</option><option>🇵🇪 Perú</option><option>🇨🇱 Chile</option><option>Otro</option>
+        </select>
+        <select class="sel-inp">
+          <option>¿En qué país vives ahora?</option>
+          <option>🇺🇸 Estados Unidos</option><option>🇪🇸 España</option><option>🇨🇦 Canadá</option>
+          <option>🇩🇪 Alemania</option><option>🇬🇧 Reino Unido</option><option>Otro</option>
+        </select>
+        <button class="btn btn-primary btn-full" onclick="nextStep(3)" style="margin-top:6px;">Continuar →</button>
+      </div>
+
+      <div class="onb-step" id="o3">
+        <div class="onb-eyebrow">Paso 3 de 4</div>
+        <div class="onb-title">¿Cuánto quieres invertir?</div>
+        <p class="onb-sub">Tenemos coaches para todos los presupuestos.</p>
+        <div class="budget-grid">
+          <div class="budget-opt" onclick="selBudget(this)"><div class="budget-price">$10–$25</div><div class="budget-label">Económico</div></div>
+          <div class="budget-opt" onclick="selBudget(this)"><div class="budget-price">$25–$50</div><div class="budget-label">Intermedio</div></div>
+          <div class="budget-opt" onclick="selBudget(this)"><div class="budget-price">$50+</div><div class="budget-label">Premium</div></div>
+        </div>
+        <select class="sel-inp" style="margin-bottom:22px;">
+          <option>¿Con qué frecuencia?</option>
+          <option>Una vez por semana</option>
+          <option>Cada dos semanas</option>
+          <option>Una vez al mes</option>
+        </select>
+        <button class="btn btn-primary btn-full" onclick="nextStep(4)">Ver mi match →</button>
+      </div>
+
+      <div class="onb-step" id="o4">
+        <div class="onb-eyebrow">Tu match perfecto</div>
+        <div class="onb-title">¡Encontramos tu coach!</div>
+        <p class="onb-sub">Basándonos en tus respuestas, esta es nuestra recomendación.</p>
+        <div class="match-card" onclick="openProfile('maria')">
+          <div class="av av-sm av-gold">MR</div>
+          <div style="flex:1;">
+            <div style="font-size:0.9rem;font-weight:500;">María Rodríguez</div>
+            <div style="font-size:0.72rem;color:var(--text2);">🇲🇽 México · <span class="stars">★★★★★</span> 4.9</div>
+            <div class="tag" style="margin-top:5px;">Identidad & Pertenencia</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-family:'Playfair Display',serif;font-size:1rem;">$45</div>
+            <div style="font-size:0.62rem;color:var(--text3);">/sesión</div>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-full" onclick="openProfile('maria')" style="margin-bottom:10px;">Ver perfil y reservar</button>
+        <button class="btn btn-ghost btn-full" onclick="goto('browse')">Explorar más coaches</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ CONFIRM ============ -->
+  <div class="screen" id="s-confirm">
+    <div class="status-space"></div>
+    <div class="confirm-body">
+      <div class="confirm-icon">✓</div>
+      <div class="confirm-title">¡Sesión reservada!</div>
+      <p class="confirm-sub">Tu sesión con <strong id="c-coach">María Rodríguez</strong> está confirmada. Recibirás el enlace de Google Meet por correo electrónico.</p>
+      <div class="confirm-card">
+        <div class="c-row"><span class="c-label">Coach</span><span class="c-val" id="c-name">María Rodríguez</span></div>
+        <div class="c-row"><span class="c-label">Fecha</span><span class="c-val">Martes, 25 de marzo</span></div>
+        <div class="c-row"><span class="c-label">Hora</span><span class="c-val">10:00am EST</span></div>
+        <div class="c-row"><span class="c-label">Duración</span><span class="c-val">60 minutos</span></div>
+        <div class="c-row"><span class="c-label">Total</span><span class="c-val" id="c-total">$45.00</span></div>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="goto('home')">Volver al inicio</button>
+    </div>
+  </div>
+
+</div><!-- end app -->
 
 <script>
 const coaches = {
-  maria:     { initials:'MR', bg:'var(--gold)',    tc:'#0D1A12', name:'María Rodríguez',  country:'🇲🇽 México',    rating:'4.9', sessions:'312 sesiones', price:'$45', tags:['Identidad','Migración'], bio:'Soy coach certificada con 6 años acompañando a latinos que viven fuera de su país. Emigré de México a Alemania en 2017 y entiendo de primera mano la mezcla de emoción y pérdida que trae ese proceso.' },
-  carlos:    { initials:'CL', bg:'var(--green)',   tc:'#0D1A12', name:'Carlos Lagos',     country:'🇨🇴 Colombia',  rating:'4.8', sessions:'245 sesiones', price:'$30', tags:['Carrera','Propósito'], bio:'Coach ejecutivo colombiano con base en Toronto. He ayudado a más de 200 latinos a encontrar su rumbo profesional en el exterior.' },
-  valentina: { initials:'VP', bg:'var(--rose)',    tc:'#fff',    name:'Valentina Paz',    country:'🇦🇷 Argentina', rating:'5.0', sessions:'189 sesiones', price:'$60', tags:['Migración','Familia'], bio:'Psicóloga y coach especializada en duelo migratorio. Vivo en Madrid desde 2019 y sé lo que significa construir una vida nueva con una mochila llena de recuerdos.' },
-  jorge:     { initials:'JS', bg:'var(--blue)',    tc:'#fff',    name:'Jorge Sánchez',    country:'🇵🇪 Perú',      rating:'4.7', sessions:'134 sesiones', price:'$20', tags:['Familia','Relaciones'], bio:'Me especializo en los retos relacionales que trae la migración: parejas separadas, padres entre dos culturas, familias que intentan mantenerse unidas.' },
-  lucia:     { initials:'LM', bg:'#8A5C9E',       tc:'#fff',    name:'Lucía Morales',    country:'🇨🇱 Chile',     rating:'4.9', sessions:'98 sesiones',  price:'$35', tags:['Finanzas','Metas'], bio:'Coach financiera ayudando a latinos en el exterior a ordenar su economía y construir un futuro sólido en su país adoptivo.' },
+  maria:     { initials:'MR', cls:'av-gold',   name:'María Rodríguez',  country:'🇲🇽 México',    rating:'4.9', sessions:'312 sesiones', price:'$45', tags:['Identidad','Migración','Pertenencia'], bio:'Soy coach certificada con 6 años acompañando a latinos que viven fuera de su país. Emigré de México a Alemania en 2017 y entiendo de primera mano la mezcla de emoción y pérdida que trae ese proceso. Mi enfoque se centra en ayudarte a construir una nueva identidad sin perder tus raíces.' },
+  carlos:    { initials:'CL', cls:'av-green',  name:'Carlos Lagos',     country:'🇨🇴 Colombia',  rating:'4.8', sessions:'245 sesiones', price:'$30', tags:['Carrera','Propósito','Liderazgo'],   bio:'Coach ejecutivo colombiano con base en Toronto. He ayudado a más de 200 latinos a encontrar su rumbo profesional en el exterior. Combino coaching de carrera con un entendimiento profundo de los retos de la diáspora latina.' },
+  valentina: { initials:'VP', cls:'av-rose',   name:'Valentina Paz',    country:'🇦🇷 Argentina', rating:'5.0', sessions:'189 sesiones', price:'$60', tags:['Migración','Familia','Duelo'],      bio:'Psicóloga y coach especializada en duelo migratorio. Vivo en Madrid desde 2019 y sé lo que significa construir una vida nueva con una mochila llena de recuerdos. Mi trabajo es ayudarte a cargar esa mochila con más ligereza.' },
+  jorge:     { initials:'JS', cls:'av-blue',   name:'Jorge Sánchez',    country:'🇵🇪 Perú',      rating:'4.7', sessions:'134 sesiones', price:'$20', tags:['Familia','Relaciones'],            bio:'Me especializo en los retos relacionales que trae la migración: parejas separadas, padres entre dos culturas, y familias que intentan mantenerse unidas a miles de kilómetros.' },
+  lucia:     { initials:'LM', cls:'av-purple', name:'Lucía Morales',    country:'🇨🇱 Chile',     rating:'4.9', sessions:'98 sesiones',  price:'$35', tags:['Finanzas','Metas'],               bio:'Coach financiera ayudando a latinos en el exterior a ordenar su economía, enviar remesas de forma inteligente y construir un futuro sólido en su país adoptivo.' },
 };
 
 let currentCoach = 'maria';
+let currentScreen = 'home';
+let onbCurrent = 1;
 
 function goto(s) {
-  document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
-  document.getElementById('s-' + s).classList.add('active');
-  // update desktop nav
-  document.querySelectorAll('.dnav-btn').forEach(b => b.classList.remove('active'));
-  const dn = document.getElementById('dn-' + s);
-  if (dn) dn.classList.add('active');
-  // reset onboarding to step 1 if going there fresh
-  if (s === 'onboarding') {
-    ['o1','o2','o3','o4'].forEach(id => document.getElementById(id).style.display = 'none');
-    document.getElementById('o1').style.display = 'block';
-    document.getElementById('onb-prog').style.width = '25%';
-  }
+  const prev = document.getElementById('s-' + currentScreen);
+  const next = document.getElementById('s-' + s);
+  if (!next || s === currentScreen) return;
+
+  prev.classList.add('slide-back');
+  setTimeout(() => { prev.classList.remove('active','slide-back'); }, 260);
+
+  next.classList.add('active');
+  currentScreen = s;
+
+  if (s === 'onboarding') resetOnb();
+
+  // close sheet if open
+  document.getElementById('sheet-overlay').classList.remove('open');
+  window.scrollTo(0,0);
 }
 
 function openProfile(id) {
   currentCoach = id;
   const c = coaches[id];
-  document.getElementById('m-av').textContent = c.initials;
-  document.getElementById('m-av').style.background = c.bg;
-  document.getElementById('m-av').style.color = c.tc;
-  document.getElementById('m-name').textContent = c.name;
-  document.getElementById('m-country').textContent = c.country;
-  document.getElementById('m-rating').textContent = c.rating;
-  document.getElementById('m-sessions').textContent = c.sessions;
-  document.getElementById('m-price').textContent = c.price;
-  document.getElementById('m-bio').textContent = c.bio;
-  document.getElementById('m-tags').innerHTML = c.tags.map(t=>`<span class="tag">${t}</span>`).join('');
-  document.getElementById('c-name').textContent = c.name;
+  const avEl = document.getElementById('p-av');
+  avEl.textContent = c.initials;
+  avEl.className = 'av av-lg ' + c.cls;
+  document.getElementById('p-name').textContent = c.name;
+  document.getElementById('p-country').textContent = c.country;
+  document.getElementById('p-rating').textContent = c.rating;
+  document.getElementById('p-sessions').textContent = c.sessions;
+  document.getElementById('p-price').textContent = c.price;
+  document.getElementById('p-bio').textContent = c.bio;
+  document.getElementById('p-tags').innerHTML = c.tags.map(t => `<span class="tag">${t}</span>`).join('');
   document.getElementById('c-coach').textContent = c.name;
+  document.getElementById('c-name').textContent = c.name;
   document.getElementById('c-total').textContent = c.price + '.00';
   goto('profile');
 }
 
-function openSlots() {
-  document.getElementById('slot-modal').classList.add('open');
+function openSheet() {
+  document.getElementById('sheet-overlay').classList.add('open');
 }
-function closeSlots(e) {
-  if (e.target === document.getElementById('slot-modal')) {
-    document.getElementById('slot-modal').classList.remove('open');
+function closeSheet(e) {
+  if (e.target === document.getElementById('sheet-overlay')) {
+    document.getElementById('sheet-overlay').classList.remove('open');
   }
 }
 function pickSlot(el) {
@@ -1055,21 +954,33 @@ function pickSlot(el) {
   el.classList.add('sel');
 }
 
-let onbCurrent = 1;
-function nextOnb(step) {
-  document.getElementById('o' + onbCurrent).style.display = 'none';
-  onbCurrent = step;
-  document.getElementById('o' + step).style.display = 'block';
-  document.getElementById('onb-prog').style.width = (step * 25) + '%';
+function setFilter(el) {
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
 }
 
 function selOpt(el) {
-  el.closest('.options-list').querySelectorAll('.opt').forEach(o => o.classList.remove('sel'));
+  el.closest('.opt-list').querySelectorAll('.opt').forEach(o => o.classList.remove('sel'));
   el.classList.add('sel');
 }
 function selBudget(el) {
   el.closest('.budget-grid').querySelectorAll('.budget-opt').forEach(o => o.classList.remove('sel'));
   el.classList.add('sel');
+}
+
+function nextStep(step) {
+  document.getElementById('o' + onbCurrent).classList.remove('active');
+  onbCurrent = step;
+  document.getElementById('o' + step).classList.add('active');
+  document.getElementById('onb-prog').style.width = (step * 25) + '%';
+  document.querySelector('.onb-content').scrollTo(0,0);
+}
+
+function resetOnb() {
+  ['o1','o2','o3','o4'].forEach(id => document.getElementById(id).classList.remove('active'));
+  document.getElementById('o1').classList.add('active');
+  document.getElementById('onb-prog').style.width = '25%';
+  onbCurrent = 1;
 }
 </script>
 </body>
